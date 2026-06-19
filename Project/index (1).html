@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger — Student Grade Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4efe4;
+    --paper-line: #e3dac8;
+    --ink: #2b2620;
+    --ink-soft: #6b6356;
+    --pass: #2f5d4f;
+    --pass-bg: #e1ebe2;
+    --fail: #8a3324;
+    --fail-bg: #f3e2dc;
+    --accent: #b5651d;
+    --card: #fffdf8;
+    --shadow: rgba(43, 38, 32, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 38px,
+        var(--paper-line) 38px,
+        var(--paper-line) 39px
+      );
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .title-block .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 42px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    max-width: 46ch;
+  }
+
+  .class-avg {
+    text-align: right;
+  }
+
+  .class-avg .num {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1;
+    display: block;
+  }
+
+  .class-avg .lbl {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Layout grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr; }
+    .class-avg { text-align: left; }
+    header { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ---------- Panel shared ---------- */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px var(--shadow);
+    padding: 22px 22px 26px;
+    margin-bottom: 24px;
+  }
+
+  .panel h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .panel h2 .count {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  /* ---------- Add student form ---------- */
+  .add-form {
+    display: grid;
+    grid-template-columns: 80px 1.4fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  @media (max-width: 560px) {
+    .add-form { grid-template-columns: 1fr 1fr; }
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+
+  .field input {
+    width: 100%;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 9px 10px;
+    border: 1px solid var(--paper-line);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .field input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .add-btn {
+    grid-column: span 1;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 3px;
+    padding: 10px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    height: 38px;
+  }
+
+  .add-btn:hover { background: var(--accent); }
+  .add-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 560px) {
+    .add-btn { grid-column: 1 / -1; }
+  }
+
+  .form-note {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+
+  .flash {
+    font-size: 12px;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 3px;
+    display: none;
+  }
+  .flash.show { display: block; }
+  .flash.warn { background: var(--fail-bg); color: var(--fail); }
+  .flash.ok { background: var(--pass-bg); color: var(--pass); }
+
+  /* ---------- Roster table ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--ink);
+    padding: 6px 8px;
+    font-weight: 400;
+  }
+
+  tbody tr {
+    border-bottom: 1px dashed var(--paper-line);
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 10px 8px;
+    vertical-align: middle;
+  }
+
+  .id-cell {
+    color: var(--ink-soft);
+    font-size: 11px;
+  }
+
+  .name-cell {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .grades-cell {
+    color: var(--ink-soft);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+
+  .avg-cell {
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .status-pill {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 100px;
+    display: inline-block;
+  }
+
+  .status-pill.pass { background: var(--pass-bg); color: var(--pass); }
+  .status-pill.fail { background: var(--fail-bg); color: var(--fail); }
+
+  .row-actions button {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .row-actions button:hover { color: var(--fail); }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 10px;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
+  /* ---------- Top student callout ---------- */
+  .top-callout {
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+  }
+
+  .top-callout .name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 2px 0 2px;
+  }
+
+  .top-callout .avg {
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .top-callout .avg b {
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  /* ---------- Distribution bars ---------- */
+  .bar-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: var(--paper-line);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 100px;
+  }
+
+  .bar-fill.pass { background: var(--pass); }
+  .bar-fill.fail { background: var(--fail); }
+
+  .bar-row .pct {
+    text-align: right;
+    color: var(--ink-soft);
+    font-size: 11px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    text-align: center;
+    margin-top: 36px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .panel, tbody tr { transition: box-shadow 0.2s ease; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <p class="eyebrow">Roster &amp; Report</p>
+      <h1>Ledger</h1>
+      <p class="tagline">A small grade tracker — add students, log their marks, see who's passing at a glance.</p>
+    </div>
+    <div class="class-avg">
+      <span class="num" id="classAvgNum">0</span>
+      <span class="lbl">Class Average</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <div class="panel">
+        <h2>Add a Student</h2>
+        <div class="add-form">
+          <div class="field">
+            <label for="inId">ID</label>
+            <input id="inId" type="number" placeholder="104" />
+          </div>
+          <div class="field">
+            <label for="inName">Name</label>
+            <input id="inName" type="text" placeholder="Hina Tariq" />
+          </div>
+          <div class="field">
+            <label for="inGrades">Grades</label>
+            <input id="inGrades" type="text" placeholder="88, 92, 79" />
+          </div>
+          <button class="add-btn" id="addBtn">Add</button>
+        </div>
+        <p class="form-note">Separate grades with commas. Duplicate IDs will be rejected.</p>
+        <div class="flash" id="flash"></div>
+      </div>
+
+      <div class="panel">
+        <h2>All Students <span class="count" id="rosterCount">0 total</span></h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Grades</th>
+              <th>Avg</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">No students yet. Add one above to start the roster.</div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <div class="panel">
+        <h2>Top Student</h2>
+        <div class="top-callout" id="topCallout">
+          <p class="avg">No students yet</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Pass / Fail Split</h2>
+        <div class="bar-row">
+          <span>Passing</span>
+          <div class="bar-track"><div class="bar-fill pass" id="passBar" style="width:0%"></div></div>
+          <span class="pct" id="passPct">0%</span>
+        </div>
+        <div class="bar-row">
+          <span>Failing</span>
+          <div class="bar-track"><div class="bar-fill fail" id="failBar" style="width:0%"></div></div>
+          <span class="pct" id="failPct">0%</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>Built with vanilla JS — Student &amp; Tracker classes · passing mark ≥ 50</footer>
+
+</div>
+
+<script>
+  // ---------- Core logic: ported directly from Students.js / Tracker.js ----------
+  class Student {
+    constructor(id, name, grades) {
+      this.id = id;
+      this.name = name;
+      this.grades = grades;
+    }
+
+    getAverage() {
+      if (this.grades.length === 0) return 0;
+      const total = this.grades.reduce((acc, cur) => acc + cur, 0);
+      return Math.round(total / this.grades.length);
+    }
+
+    isPassing() {
+      return this.getAverage() >= 50;
+    }
+  }
+
+  class Tracker {
+    constructor() {
+      this.students = [];
+    }
+
+    addStudent(id, name, grades = []) {
+      const exists = this.students.find(s => s.id === id);
+      if (exists) return { ok: false, message: `Student with ID ${id} already exists.` };
+      this.students.push(new Student(id, name, grades));
+      return { ok: true, message: `Added ${name}.` };
+    }
+
+    removeStudent(id) {
+      const before = this.students.length;
+      this.students = this.students.filter(s => s.id !== id);
+      return this.students.length < before;
+    }
+
+    getClassAverage() {
+      if (this.students.length === 0) return 0;
+      const total = this.students.reduce((acc, s) => acc + s.getAverage(), 0);
+      return Math.round(total / this.students.length);
+    }
+
+    getTopStudent() {
+      if (this.students.length === 0) return null;
+      return this.students.reduce((top, s) => (s.getAverage() > top.getAverage() ? s : top));
+    }
+
+    getPassingStudents() {
+      return this.students.filter(s => s.isPassing());
+    }
+
+    getFailingStudents() {
+      return this.students.filter(s => !s.isPassing());
+    }
+  }
+
+  // ---------- Wire up to the UI ----------
+  const tracker = new Tracker();
+
+  const rosterBody = document.getElementById('rosterBody');
+  const emptyState = document.getElementById('emptyState');
+  const rosterCount = document.getElementById('rosterCount');
+  const classAvgNum = document.getElementById('classAvgNum');
+  const topCallout = document.getElementById('topCallout');
+  const passBar = document.getElementById('passBar');
+  const failBar = document.getElementById('failBar');
+  const passPct = document.getElementById('passPct');
+  const failPct = document.getElementById('failPct');
+  const flash = document.getElementById('flash');
+
+  function showFlash(message, type) {
+    flash.textContent = message;
+    flash.className = `flash show ${type}`;
+    clearTimeout(showFlash._t);
+    showFlash._t = setTimeout(() => flash.classList.remove('show'), 3200);
+  }
+
+  function render() {
+    const students = tracker.students;
+    rosterCount.textContent = `${students.length} total`;
+    emptyState.style.display = students.length === 0 ? 'block' : 'none';
+
+    rosterBody.innerHTML = students.map(s => {
+      const avg = s.getAverage();
+      const passing = s.isPassing();
+      return `
+        <tr>
+          <td class="id-cell">#${s.id}</td>
+          <td class="name-cell">${escapeHtml(s.name)}</td>
+          <td class="grades-cell">${s.grades.join(' · ') || '—'}</td>
+          <td class="avg-cell">${avg}</td>
+          <td><span class="status-pill ${passing ? 'pass' : 'fail'}">${passing ? 'Passing' : 'Failing'}</span></td>
+          <td class="row-actions"><button data-id="${s.id}" class="removeBtn">remove</button></td>
+        </tr>
+      `;
+    }).join('');
+
+    classAvgNum.textContent = tracker.getClassAverage();
+
+    const top = tracker.getTopStudent();
+    if (top) {
+      topCallout.innerHTML = `
+        <p class="avg">#${top.id}</p>
+        <p class="name">${escapeHtml(top.name)}</p>
+        <p class="avg">Average: <b>${top.getAverage()}</b></p>
+      `;
+    } else {
+      topCallout.innerHTML = `<p class="avg">No students yet</p>`;
+    }
+
+    const passing = tracker.getPassingStudents().length;
+    const failing = tracker.getFailingStudents().length;
+    const totalCount = students.length;
+    const pPct = totalCount ? Math.round((passing / totalCount) * 100) : 0;
+    const fPct = totalCount ? Math.round((failing / totalCount) * 100) : 0;
+    passBar.style.width = pPct + '%';
+    failBar.style.width = fPct + '%';
+    passPct.textContent = pPct + '%';
+    failPct.textContent = fPct + '%';
+
+    rosterBody.querySelectorAll('.removeBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        tracker.removeStudent(id);
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const idEl = document.getElementById('inId');
+    const nameEl = document.getElementById('inName');
+    const gradesEl = document.getElementById('inGrades');
+
+    const id = Number(idEl.value);
+    const name = nameEl.value.trim();
+    const gradesRaw = gradesEl.value.trim();
+
+    if (!idEl.value || !name) {
+      showFlash('ID and name are required.', 'warn');
+      return;
+    }
+
+    const grades = gradesRaw
+      ? gradesRaw.split(',').map(g => Number(g.trim())).filter(g => !isNaN(g))
+      : [];
+
+    const result = tracker.addStudent(id, name, grades);
+    if (!result.ok) {
+      showFlash(result.message, 'warn');
+      return;
+    }
+
+    showFlash(result.message, 'ok');
+    idEl.value = '';
+    nameEl.value = '';
+    gradesEl.value = '';
+    idEl.focus();
+    render();
+  });
+
+  document.getElementById('inGrades').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('addBtn').click();
+  });
+
+  // ---------- Seed with sample data (same as Index.js) ----------
+  tracker.addStudent(101, 'Ali Khan', [88, 92, 79, 95]);
+  tracker.addStudent(102, 'Sara Ahmed', [45, 38, 52, 41]);
+  tracker.addStudent(103, 'Ahmed Raza', [70, 65, 80, 75]);
+  render();
+</script>
+
+</body>
+</html>
